@@ -76,16 +76,17 @@ class RegularizationService {
         if (currentDay > 0 && currentDay <= 20) {
             WebElement selectDate = driver.findElement(By.name("fromdate"));
             selectDate.click();
-            myWaitVar.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"ui-datepicker-div\"]/div/a[1]/span")));
-            WebElement prevButton = driver.findElement(By.xpath("//*[@id=\"ui-datepicker-div\"]/div/a[1]/span"));
+            myWaitVar.until(ExpectedConditions.elementToBeClickable(By.xpath(config.get("fromDateDiv"))));
+            WebElement prevButton = driver.findElement(By.xpath(config.get("prevButtonXPath")));
             prevButton.click();
             Boolean isValueFound = false;
             int day = 1;
             for (int j = 1; j <= 5; j++) {
                 for (int k = 1; k <= 7; k++) {
-                    WebElement dayInWeb = driver.findElement(By.xpath("//*[@id=\"ui-datepicker-div\"]/table/tbody/tr[" + j + "]/td[" + k + "]"));
+
+                    WebElement dayInWeb = driver.findElement(By.xpath( config.get("fromDateRowXpath") + j + "]/td[" + k + "]"));
                     if (dayInWeb.getText().trim() != null && !dayInWeb.getText().trim().equals("")) {
-                        WebElement dayEmelement = driver.findElement(By.xpath("//*[@id=\"ui-datepicker-div\"]/table/tbody/tr[" + j + "]/td[" + k + "]/a"));
+                        WebElement dayEmelement = driver.findElement(By.xpath(config.get("fromDateRowXpath") + j + "]/td[" + k + "]/a"));
                         if (dayEmelement.getText().trim().equals(Integer.toString(day))) {
                             dayEmelement.click();
                             isValueFound = true;
@@ -100,35 +101,27 @@ class RegularizationService {
                 }
             }
 
-            WebElement showButton = driver.findElement(By.xpath("//*[@id=\"mainDiv\"]/div[5]/div/div/div[1]/form/div/div[5]/span"));
+            WebElement showButton = driver.findElement(By.xpath(config.get("showButtonXPath")));
             showButton.click();
-            myWaitVar.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"mainDiv\"]/div[5]/div/div/div[2]/div/table[1]/tbody/tr[50]/td[2]")));
+            myWaitVar.until(ExpectedConditions.elementToBeClickable(By.xpath(config.get("columnsWaitXpath") + (58 - day) + "]/td[2]")));
         }
     }
 
-    //*[@id="mainDiv"]/div[5]/div/div/div[2]/div/table[1]/tbody/tr[1]
-    //*[@id="mainDiv"]/div[5]/div/div/div[2]/div/table[1]/tbody/tr[31]/td[1]
     public static ArrayList<Date> getRegularizeDates() {
         ArrayList<Date> regularizeDates = new ArrayList<Date>();
         try {
-            List col = driver.findElements(By.xpath("//*[@id=\"mainDiv\"]/div[5]/div/div/div[2]/div/table[1]/thead"));
-            List rows = driver.findElements(By.xpath("//*[@id=\"mainDiv\"]/div[5]/div/div/div[2]/div/table[1]/tbody/tr"));
-            System.out.println("Rows: " + rows.size());
+            List rows = driver.findElements(By.xpath(config.get("attendanceDateRow")));
             for (int i = 0; i < rows.size() - 1; i++) {
-                String firstInDate = driver.findElement(By.xpath("//*[@id=\"mainDiv\"]/div[5]/div/div/div[2]/div/table[1]/tbody/tr[" + (i + 1) + "]/td[2]")).getText().trim();
-                String lastOutDate = driver.findElement(By.xpath("//*[@id=\"mainDiv\"]/div[5]/div/div/div[2]/div/table[1]/tbody/tr[" + (i + 1) + "]/td[3]")).getText().trim();
-                String dateString = driver.findElement(By.xpath("//*[@id=\"mainDiv\"]/div[5]/div/div/div[2]/div/table[1]/tbody/tr[" + (i + 1) + "]/td[1]")).getText().trim();
-                String numberOfHours = driver.findElement(By.xpath("//*[@id=\"mainDiv\"]/div[5]/div/div/div[2]/div/table[1]/tbody/tr[" + (i + 1) + "]/td[5]")).getText().trim();
+                String firstInDate = driver.findElement(By.xpath(config.get("attendanceTableInfoRow") + (i + 1) + "]/td[2]")).getText().trim();
+                String lastOutDate = driver.findElement(By.xpath(config.get("attendanceTableInfoRow") + (i + 1) + "]/td[3]")).getText().trim();
+                String dateString = driver.findElement( By.xpath(config.get("attendanceTableInfoRow") + (i + 1) + "]/td[1]")).getText().trim();
+                String numberOfHours = driver.findElement(By.xpath(config.get("attendanceTableInfoRow")  + (i + 1) + "]/td[5]")).getText().trim();
                 int numberOfHoursWork = Integer.parseInt(numberOfHours.split(":")[0].trim());
                 int numberOfMinuteWorks = Integer.parseInt(numberOfHours.split(":")[1].trim());
                 SimpleDateFormat formatter2 = new SimpleDateFormat("dd MMM yyyy");
                 Date date = formatter2.parse(dateString);
                 if (firstInDate != null && firstInDate.length() != 0 && lastOutDate != null && lastOutDate.length() != 0) {
-                    System.out.print("firstInDate: " + firstInDate);
-                    System.out.print(" lastOutDate: " + lastOutDate);
                     if (firstInDate != lastOutDate) {
-                        System.out.print(" numberOfHoursWork: " + numberOfHoursWork);
-                        System.out.println(" MIN_WORKING_HOURS: " + MIN_WORKING_HOURS);
                         if (numberOfHoursWork > MIN_WORKING_HOURS && numberOfHoursWork < MAX_WORKING_HOURS) {
                             regularizeDates.add(date);
                         } else if (numberOfHoursWork == MIN_WORKING_HOURS && numberOfMinuteWorks >= 0) {
@@ -148,21 +141,16 @@ class RegularizationService {
     public static void applyRegularization(ArrayList<Date> regularizeDates) {
         if (regularizeDates.size() > 0) {
             WebDriverWait myWaitVar = new WebDriverWait(driver, 10);
-            driver.get("https://tracxntechnologies.greythr.com/v2/employee/apply/attendanceRegularization");
+            driver.get(config.get("regularizationPage"));
             myWaitVar.until(ExpectedConditions.elementToBeClickable(By.name("dateField")));
-            List regularizationDetailsRow = driver.findElements(By.xpath("//*[@id=\"gts-employee-apply-attendanceRegularization\"]/table/tbody/tr"));
-            System.out.println("regularizationDetailsRow: " + regularizationDetailsRow.size());
-            for (int i = 0; i < regularizationDetailsRow.size() - 1; i++) {
-                WebElement reason = driver.findElement(By.xpath("//*[@id=\"gts-employee-apply-attendanceRegularization\"]/table/tbody/tr[" + (i + 1) + "]/td[6]/i"));
-                System.out.println("reason: " + reason);
-                reason.click();
+            List initialRegularizationDetailsRow = driver.findElements(By.xpath(config.get("regularizationTable")));
+            for (int i = 0; i < initialRegularizationDetailsRow.size() - 1; i++) {
+                WebElement deleteIcon = driver.findElement(By.xpath(config.get("regularizationTableRow") + (i + 1) + "]/td[6]/i"));
+                deleteIcon.click();
             }
             WebElement selectDate = driver.findElement(By.name("dateField"));
 
             selectDate.click();
-            WebElement nextLink = driver.findElement(By.xpath("//*[@id=\"ui-datepicker-div\"]/div/a[2]"));
-            WebElement previousLink = driver.findElement(By.xpath("//*[@id=\"ui-datepicker-div\"]/div/a[1]"));
-
             for (int i = 0; i < regularizeDates.size(); i++) {
                 Date regularizeDate = regularizeDates.get(i);
                 int day = getNormalizedDateFromEpochMills(regularizeDate.getTime()).get("day");
