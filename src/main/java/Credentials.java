@@ -1,8 +1,8 @@
 package com.regularization;
 
 class Credentials {
-    private static String userId = "873";
-    private static String password = "beHappy20@";
+    private static String userId = "***";
+    private static String password = "@@@@@@";
 
     String getPassword() {
         return password;
