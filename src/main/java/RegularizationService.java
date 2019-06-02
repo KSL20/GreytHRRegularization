@@ -41,9 +41,8 @@ class RegularizationService {
                 openAttendanceInfoPage();
                 setDates();
                 ArrayList<Date> regularizeDates = getRegularizeDates();
-                System.out.println("regularizeDates: " + regularizeDates);
                 applyRegularization(regularizeDates);
-                //driver.close();
+                driver.close();
             }
         } catch (Exception exception) {
             System.out.println("Exception: " + exception.getMessage());
