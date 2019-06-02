@@ -16,38 +16,34 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 class RegularizationService {
     private static List<String> reasons = Arrays.asList("Have some personal work", "Left early", "Came late");
-    private static Credentials credentials = new Credentials();
     private static com.regularization.Config config = new com.regularization.Config();
     private static WebDriver driver = null;
     private static int MIN_WORKING_HOURS = 0;
     private static int MAX_WORKING_HOURS = 9;
+    private static int CHECK_FOR_LAST_MONTH = 5;
     private static Boolean IS_FORGOT_SWIPE_OUT_REGULARIZATION_ALLOWED = true;
 
     public static void main(String... args) {
-        regularize();
+        if (args.length == 2) {
+            String userId = args[0];
+            String password = args[1];
+            regularize(userId, password);
+        }
     }
 
-    public static void regularize() {
+    public static void regularize(String userId, String password) {
         try {
             Boolean configLoaded = config.init();
             if (configLoaded) {
-                System.out.println("Start");
                 init();
-                System.out.println("Init");
                 openGreytHRLoginPage();
-                System.out.println("Open Greyt HR");
-                login();
-                System.out.println("Login");
+                login(userId, password);
                 openAttendanceInfoPage();
-                System.out.println("openAttendanceInfoPage");
                 setDates();
-                System.out.println("setDates");
                 ArrayList<Date> regularizeDates = getRegularizeDates();
                 System.out.println("regularizeDates: " + regularizeDates);
                 applyRegularization(regularizeDates);
-                System.out.println("applyRegularization: ");
                 //driver.close();
-                System.out.println("End");
             }
         } catch (Exception exception) {
             System.out.println("Exception: " + exception.getMessage());
@@ -67,13 +63,13 @@ class RegularizationService {
     public static void openGreytHRLoginPage() {
         driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
         driver.get(config.get("pageUrl"));
-      //  driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-      //  driver.manage().window().maximize();
+        //  driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+        //  driver.manage().window().maximize();
     }
 
-    public static void login() {
-        driver.findElement(By.id(config.get("loginUserNameHtmlId"))).sendKeys(credentials.getUserId());
-        driver.findElement(By.id(config.get("loginUserPasswordHtmlId"))).sendKeys(credentials.getPassword());
+    public static void login(String userId, String password) {
+        driver.findElement(By.id(config.get("loginUserNameHtmlId"))).sendKeys(userId);
+        driver.findElement(By.id(config.get("loginUserPasswordHtmlId"))).sendKeys(password);
         driver.manage().timeouts().implicitlyWait(60, TimeUnit.SECONDS);
         driver.findElement(By.id(config.get("loginButtonHtmlId"))).click();
         WebDriverWait myWaitVar = new WebDriverWait(driver, 10);
@@ -91,20 +87,20 @@ class RegularizationService {
         System.out.println("currentDay: " + currentDay);
 
         WebDriverWait myWaitVar = new WebDriverWait(driver, 10);
-        if (currentDay > 0 && currentDay <= 20) {
+        if (currentDay > 0 && currentDay <= CHECK_FOR_LAST_MONTH) {
             WebElement selectDate = driver.findElement(By.name("fromdate"));
             selectDate.click();
             myWaitVar.until(ExpectedConditions.elementToBeClickable(By.xpath(config.get("fromDateDiv"))));
             WebElement prevButton = driver.findElement(By.xpath(config.get("prevButtonXPath")));
             prevButton.click();
             Boolean isValueFound = false;
-            int day = 1;
+            int lastMonthDay = 1;
             for (int j = 1; j <= 5; j++) {
                 for (int k = 1; k <= 7; k++) {
                     WebElement dayInWeb = driver.findElement(By.xpath( config.get("fromDateRowXpath") + j + "]/td[" + k + "]"));
                     if (dayInWeb.getText().trim() != null && !dayInWeb.getText().trim().equals("")) {
                         WebElement dayEmelement = driver.findElement(By.xpath(config.get("fromDateRowXpath") + j + "]/td[" + k + "]/a"));
-                        if (dayEmelement.getText().trim().equals(Integer.toString(day))) {
+                        if (dayEmelement.getText().trim().equals(Integer.toString(lastMonthDay))) {
                             dayEmelement.click();
                             isValueFound = true;
                         }
@@ -120,7 +116,7 @@ class RegularizationService {
 
             WebElement showButton = driver.findElement(By.xpath(config.get("showButtonXPath")));
             showButton.click();
-            myWaitVar.until(ExpectedConditions.elementToBeClickable(By.xpath(config.get("columnsWaitXpath") + (58 - day) + "]/td[2]")));
+            myWaitVar.until(ExpectedConditions.elementToBeClickable(By.xpath(config.get("columnsWaitXpath") + (58 - lastMonthDay) + "]/td[2]")));
         }
     }
 
@@ -165,20 +161,26 @@ class RegularizationService {
                 WebElement deleteIcon = driver.findElement(By.xpath(config.get("regularizationTableRow") + (i + 1) + "]/td[6]/i"));
                 deleteIcon.click();
             }
+            Date currentDate = new Date();
+            Map<String, Integer> currentDateMap = getNormalizedDateFromEpochMills(currentDate.getTime());
+            int currentDay = currentDateMap.get("day");
+            int currentMonth = currentDateMap.get("month");
+            myWaitVar.until(ExpectedConditions.visibilityOf(driver.findElement(By.name("dateField"))));
             WebElement selectDate = driver.findElement(By.name("dateField"));
-
             selectDate.click();
             for (int i = 0; i < regularizeDates.size(); i++) {
                 Date regularizeDate = regularizeDates.get(i);
-                int day = getNormalizedDateFromEpochMills(regularizeDate.getTime()).get("day");
+                Map<String, Integer> regularizeDateMap = getNormalizedDateFromEpochMills(regularizeDate.getTime());
+                int regularizeDay = regularizeDateMap.get("day");
+                int regularizeMonth = regularizeDateMap.get("month");
                 boolean isValueFound = false;
                 for (int j = 1; j <= 5; j++) {
                     for (int k = 1; k <= 7; k++) {
-                        WebElement dayInWeb = driver.findElement(By.xpath("//*[@id=\"ui-datepicker-div\"]/table/tbody/tr[" + j + "]/td[" + k + "]"));
+                        WebElement dayInWeb = driver.findElement(By.xpath(config.get("regularizationDatePickerRow") + j + "]/td[" + k + "]"));
                         if (dayInWeb.getText().trim() != null && !dayInWeb.getText().trim().equals("")) {
-                            WebElement dayEmelement = driver.findElement(By.xpath("//*[@id=\"ui-datepicker-div\"]/table/tbody/tr[" + j + "]/td[" + k + "]/a"));
+                            WebElement dayEmelement = driver.findElement(By.xpath( config.get("regularizationDatePickerRow")  + j + "]/td[" + k + "]/a"));
                             String dayInTheCalendar = dayEmelement.getText().trim();
-                            if (dayEmelement.getText().trim().equals(Integer.toString(day))) {
+                            if (dayEmelement.getText().trim().equals(Integer.toString(regularizeDay))) {
                                 dayEmelement.click();
                                 isValueFound = true;
                             }
@@ -192,17 +194,14 @@ class RegularizationService {
                     }
                 }
             }
-            myWaitVar.until(ExpectedConditions.visibilityOf(driver.findElement(By.id("reason"))));
-            List regularizationDetailsRow1 = driver.findElements(By.xpath("//*[@id=\"gts-employee-apply-attendanceRegularization\"]/table/tbody/tr"));
-            System.out.println("regularizationDetailsRow: " + regularizationDetailsRow1.size());
-            Random rand = new Random();
-            int value = rand.nextInt(reasons.size());
-            for (int i = 0; i < regularizationDetailsRow1.size() - 1; i++) {
+            List regularizationDetailsRow = driver.findElements(By.xpath("//*[@id=\"gts-employee-apply-attendanceRegularization\"]/table/tbody/tr"));
+            for (int i = 0; i < regularizationDetailsRow.size() - 1; i++) {
+                Random rand = new Random();
+                int reasonIndex = rand.nextInt(reasons.size());
                 WebElement reason = driver.findElement(By.xpath("//*[@id=\"gts-employee-apply-attendanceRegularization\"]/table/tbody/tr[" + (i + 1) + "]/td[5]"));
-                System.out.println("reason: " + reason);
-                reason.findElement(By.id("reason")).sendKeys(reasons.get(0));
+                reason.findElement(By.id("reason")).sendKeys(reasons.get(reasonIndex));
             }
-          //driver.findElement(By.xpath("//*[@id=\"gts-employee-apply-attendanceRegularization\"]/div[4]/button[1]")).click();
+            driver.findElement(By.xpath(config.get("submitButton"))).click();
         }
     }
 
