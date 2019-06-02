@@ -2,11 +2,15 @@ package com.regularization;
 
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -27,30 +31,44 @@ class RegularizationService {
         try {
             Boolean configLoaded = config.init();
             if (configLoaded) {
+                System.out.println("Start");
                 init();
+                System.out.println("Init");
                 openGreytHRLoginPage();
+                System.out.println("Open Greyt HR");
                 login();
+                System.out.println("Login");
                 openAttendanceInfoPage();
+                System.out.println("openAttendanceInfoPage");
                 setDates();
+                System.out.println("setDates");
                 ArrayList<Date> regularizeDates = getRegularizeDates();
+                System.out.println("regularizeDates: " + regularizeDates);
                 applyRegularization(regularizeDates);
-                //  driver.close();
+                System.out.println("applyRegularization: ");
+                //driver.close();
+                System.out.println("End");
             }
         } catch (Exception exception) {
+            System.out.println("Exception: " + exception.getMessage());
+            System.out.println("Stacktrace: " + exception.getStackTrace().toString());
             exception.printStackTrace();
         }
     }
 
     public static void init() {
         System.setProperty("webdriver.chrome.driver", config.get("chromeDriverPath"));
-        driver = new ChromeDriver();
+        ChromeOptions chromeOptions = new ChromeOptions();
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless");
+        driver = new ChromeDriver(chromeOptions);
     }
 
     public static void openGreytHRLoginPage() {
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+        driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
         driver.get(config.get("pageUrl"));
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-        driver.manage().window().maximize();
+      //  driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+      //  driver.manage().window().maximize();
     }
 
     public static void login() {
@@ -83,7 +101,6 @@ class RegularizationService {
             int day = 1;
             for (int j = 1; j <= 5; j++) {
                 for (int k = 1; k <= 7; k++) {
-
                     WebElement dayInWeb = driver.findElement(By.xpath( config.get("fromDateRowXpath") + j + "]/td[" + k + "]"));
                     if (dayInWeb.getText().trim() != null && !dayInWeb.getText().trim().equals("")) {
                         WebElement dayEmelement = driver.findElement(By.xpath(config.get("fromDateRowXpath") + j + "]/td[" + k + "]/a"));
@@ -185,7 +202,7 @@ class RegularizationService {
                 System.out.println("reason: " + reason);
                 reason.findElement(By.id("reason")).sendKeys(reasons.get(0));
             }
-            //driver.findElement(By.xpath("//*[@id=\"gts-employee-apply-attendanceRegularization\"]/div[4]/button[1]")).click();
+          //driver.findElement(By.xpath("//*[@id=\"gts-employee-apply-attendanceRegularization\"]/div[4]/button[1]")).click();
         }
     }
 
