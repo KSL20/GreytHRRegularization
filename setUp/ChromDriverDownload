@@ -1,0 +1,39 @@
+#!/bin/bash
+
+DIRECTORY="$HOME/selenium"
+if [ ! -d ${DIRECTORY} ]
+then
+        sudo mkdir ${DIRECTORY}
+else
+	sudo rm -f "${DIRECTORY}/*.*"
+fi
+
+cd ${DIRECTORY}
+
+if [ $? == 0 ]
+then
+	GOOGLE_VERSION=$(cut -d "." -f1 <<< $(cut -d " " -f3 <<< $(google-chrome --version)))
+	echo ${GOOGLE_VERSION}
+
+	if [ ${GOOGLE_VERSION} == '75' ]
+	then
+        	wget 'https://chromedriver.storage.googleapis.com/75.0.3770.8/chromedriver_linux64.zip'
+	elif [ ${GOOGLE_VERSION} == '74' ]
+	then
+        	wget 'https://chromedriver.storage.googleapis.com/74.0.3729.6/chromedriver_linux64.zip'
+	elif [ ${GOOGLE_VERSION} == '73' ]
+	then
+        	wget 'https://chromedriver.storage.googleapis.com/73.0.3683.68/chromedriver_linux64.zip'
+	else
+        	wget 'https://chromedriver.storage.googleapis.com/2.46/chromedriver_linux64.zip'
+	fi	
+
+	unzip chromedriver_linux64.zip
+	sudo chmod +777 chromedriver
+	CHROME_DRIVER_PATH="${DIRECTORY}/chromedriver"
+	echo "============================================"
+	echo "Please update the chrome drive path: ${CHROME_DRIVER_PATH} in config.property file"
+	echo "============================================"
+else
+	echo "Failed"
+fi
