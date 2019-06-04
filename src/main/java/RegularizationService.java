@@ -84,8 +84,10 @@ class RegularizationService {
         Date currentDate = new Date();
         int currentDay = getNormalizedDateFromEpochMills(currentDate.getTime()).get("day");
         System.out.println("currentDay: " + currentDay);
-
         WebDriverWait myWaitVar = new WebDriverWait(driver, 10);
+        WebElement tableCalendar = driver.findElement(By.xpath("//*[@id=\"mainDiv\"]/div[1]/div/div[2]/div/button[2]"));
+        tableCalendar.click();
+        myWaitVar.until(ExpectedConditions.elementToBeClickable(By.name("fromdate")));
         if (currentDay > 0 && currentDay <= CHECK_FOR_LAST_MONTH) {
             WebElement selectDate = driver.findElement(By.name("fromdate"));
             selectDate.click();
