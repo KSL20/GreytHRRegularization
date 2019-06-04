@@ -32,7 +32,7 @@ then
 	sudo chmod +777 chromedriver
 	CHROME_DRIVER_PATH="${DIRECTORY}/chromedriver"
 	echo "============================================"
-	echo "Please update the chrome drive path: ${CHROME_DRIVER_PATH} in config.property file"
+	echo "Please update the chrome drive path: ${CHROME_DRIVER_PATH} in Config.properties file"
 	echo "============================================"
 else
 	echo "Failed"
