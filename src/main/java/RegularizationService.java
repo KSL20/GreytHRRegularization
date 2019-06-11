@@ -15,7 +15,8 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 class RegularizationService {
-    private static List<String> reasons = Arrays.asList("Have some personal work", "Left early", "Came late");
+    private static List<String> reasons = Arrays.asList("I had some personal work.", "Left early.",
+            "Came late.", "I got stuck in traffic.", "");
     private static com.regularization.Config config = new com.regularization.Config();
     private static WebDriver driver = null;
     private static int MIN_WORKING_HOURS = 0;
