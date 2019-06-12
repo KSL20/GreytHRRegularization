@@ -16,13 +16,13 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 class RegularizationService {
     private static List<String> reasons = Arrays.asList("I had some personal work.", "Left early.",
-            "Came late.", "I got stuck in traffic.", "");
+            "Came late.", "I got stuck in traffic.");
     private static com.regularization.Config config = new com.regularization.Config();
     private static WebDriver driver = null;
     private static int MIN_WORKING_HOURS = 0;
     private static int MAX_WORKING_HOURS = 9;
     private static int CHECK_FOR_LAST_MONTH = 5;
-    private static Boolean IS_FORGOT_SWIPE_OUT_REGULARIZATION_ALLOWED = true;
+    private static Boolean IS_FORGOT_SWIPE_OUT_REGULARIZATION_ALLOWED = false;
 
     public static void main(String... args) {
         if (args.length == 2) {
@@ -36,14 +36,19 @@ class RegularizationService {
         try {
             Boolean configLoaded = config.init();
             if (configLoaded) {
+                System.out.println("-----------------------");
+                System.out.println("Start: " + new Date());
                 init();
                 openGreytHRLoginPage();
                 login(userId, password);
                 openAttendanceInfoPage();
                 setDates();
                 ArrayList<Date> regularizeDates = getRegularizeDates();
+                System.out.println("regularizeDates: " + regularizeDates);
                 applyRegularization(regularizeDates);
                 driver.close();
+                System.out.println("End: " + new Date());
+                System.out.println("-----------------------");
             }
         } catch (Exception exception) {
             System.out.println("Exception: " + exception.getMessage());
@@ -84,7 +89,6 @@ class RegularizationService {
     public static void setDates() {
         Date currentDate = new Date();
         int currentDay = getNormalizedDateFromEpochMills(currentDate.getTime()).get("day");
-        System.out.println("currentDay: " + currentDay);
         WebDriverWait myWaitVar = new WebDriverWait(driver, 10);
         WebElement tableCalendar = driver.findElement(By.xpath("//*[@id=\"mainDiv\"]/div[1]/div/div[2]/div/button[2]"));
         tableCalendar.click();
@@ -196,6 +200,8 @@ class RegularizationService {
                     }
                 }
             }
+
+            myWaitVar.until(ExpectedConditions.elementToBeClickable(By.xpath(" //*[@id=\"reason\"]")));
             List regularizationDetailsRow = driver.findElements(By.xpath("//*[@id=\"gts-employee-apply-attendanceRegularization\"]/table/tbody/tr"));
             for (int i = 0; i < regularizationDetailsRow.size() - 1; i++) {
                 Random rand = new Random();
