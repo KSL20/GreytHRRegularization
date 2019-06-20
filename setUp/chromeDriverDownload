@@ -9,7 +9,7 @@ else
 fi
 
 cd ${DIRECTORY}
-
+sudo chown -R $(whoami):$(whoami) ${DIRECTORY}
 if [ $? == 0 ]
 then
 	GOOGLE_VERSION=$(cut -d "." -f1 <<< $(cut -d " " -f3 <<< $(google-chrome --version)))
@@ -31,6 +31,7 @@ then
 	unzip chromedriver_linux64.zip
 	sudo chmod +777 chromedriver
 	CHROME_DRIVER_PATH="${DIRECTORY}/chromedriver"
+	#echo "chromeDriverPath = ${CHROME_DRIVER_PATH}" >> ~/GreytHRRegularization/src/main/resources/Config.properties 
 	echo "============================================"
 	echo "Please update the chrome drive path: ${CHROME_DRIVER_PATH} in Config.properties file"
 	echo "============================================"

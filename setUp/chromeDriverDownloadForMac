@@ -7,6 +7,7 @@ else
 	sudo rm -f "${DIRECTORY}/*.*"
 fi
 
+sudo chown -R $(whoami):$(whoami) ${DIRECTORY}
 cd ${DIRECTORY}
 
 if [ $? == 0 ]
@@ -30,10 +31,10 @@ then
 	unzip chromedriver_mac64.zip
 	sudo chmod +777 chromedriver
         CHROME_DRIVER_PATH="${DIRECTORY}/chromedriver"
-        echo "chromeDriverPath = ${CHROME_DRIVER_PATH}" >> ~/GreytHRRegularization/src/main/resources/Config.properties
-        #echo "============================================"
-        #echo "Please update the chrome drive path: ${CHROME_DRIVER_PATH} in Config.properties file"
-        #echo "============================================"
+        #echo "chromeDriverPath = ${CHROME_DRIVER_PATH}" >> ~/GreytHRRegularization/src/main/resources/Config.properties
+        echo "============================================"
+        echo "Please update the chrome drive path: ${CHROME_DRIVER_PATH} in Config.properties file"
+        echo "============================================"
 else
 	echo "Failed"
 fi
