@@ -31,10 +31,11 @@ then
 	unzip chromedriver_mac64.zip
 	sudo chmod +777 chromedriver
         CHROME_DRIVER_PATH="${DIRECTORY}/chromedriver"
-        #echo "chromeDriverPath = ${CHROME_DRIVER_PATH}" >> ~/GreytHRRegularization/src/main/resources/Config.properties
-        echo "============================================"
-        echo "Please update the chrome drive path: ${CHROME_DRIVER_PATH} in Config.properties file"
-        echo "============================================"
+        > ~/GreytHRRegularization/src/main/resources/ChromeDriver.properties
+        echo "chromeDriverPath = ${CHROME_DRIVER_PATH}" >> ~/GreytHRRegularization/src/main/resources/ChromeDriver.properties
+        #echo "============================================"
+        #echo "Please update the chrome drive path: ${CHROME_DRIVER_PATH} in ChromeDriver.properties file"
+        #echo "============================================"
 else
 	echo "Failed"
 fi

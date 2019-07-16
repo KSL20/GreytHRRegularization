@@ -35,7 +35,8 @@ class RegularizationService {
     public static void regularize(String userId, String password) {
         try {
             Boolean configLoaded = config.init();
-            if (configLoaded) {
+            Boolean configLoadedChromeDriver = config.initChromeDriverPath();
+            if (configLoaded && configLoadedChromeDriver) {
                 System.out.println("-----------------------");
                 System.out.println("Start: " + new Date());
                 init();
@@ -58,7 +59,7 @@ class RegularizationService {
     }
 
     public static void init() {
-        System.setProperty("webdriver.chrome.driver", config.get("chromeDriverPath"));
+        System.setProperty("webdriver.chrome.driver", config.getChromeDriver("chromeDriverPath"));
         ChromeOptions chromeOptions = new ChromeOptions();
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless");
@@ -76,7 +77,7 @@ class RegularizationService {
         driver.findElement(By.id(config.get("loginUserNameHtmlId"))).sendKeys(userId);
         driver.findElement(By.id(config.get("loginUserPasswordHtmlId"))).sendKeys(password);
         driver.manage().timeouts().implicitlyWait(60, TimeUnit.SECONDS);
-        driver.findElement(By.id(config.get("loginButtonHtmlId"))).click();
+        driver.findElement(By.xpath(config.get("loginButtonXpath"))).click();
         WebDriverWait myWaitVar = new WebDriverWait(driver, 10);
         String homePageLastElementLoad = config.get("homePageLastElementLoad");
         myWaitVar.until(ExpectedConditions.invisibilityOfElementLocated(By.id(homePageLastElementLoad)));
@@ -171,14 +172,15 @@ class RegularizationService {
             Map<String, Integer> currentDateMap = getNormalizedDateFromEpochMills(currentDate.getTime());
             int currentDay = currentDateMap.get("day");
             int currentMonth = currentDateMap.get("month");
-            myWaitVar.until(ExpectedConditions.visibilityOf(driver.findElement(By.name("dateField"))));
-            WebElement selectDate = driver.findElement(By.name("dateField"));
-            selectDate.click();
             for (int i = 0; i < regularizeDates.size(); i++) {
                 Date regularizeDate = regularizeDates.get(i);
                 Map<String, Integer> regularizeDateMap = getNormalizedDateFromEpochMills(regularizeDate.getTime());
                 int regularizeDay = regularizeDateMap.get("day");
                 int regularizeMonth = regularizeDateMap.get("month");
+                myWaitVar.until(ExpectedConditions.visibilityOf(driver.findElement(By.name("dateField"))));
+                WebElement selectDate = driver.findElement(By.name("dateField"));
+                selectDate.click();
+                myWaitVar.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//*[@id=\"ui-datepicker-div\"]/table/tbody/tr[5]/td[1]/a"))));
                 boolean isValueFound = false;
                 for (int j = 1; j <= 5; j++) {
                     for (int k = 1; k <= 7; k++) {
@@ -186,7 +188,7 @@ class RegularizationService {
                         if (dayInWeb.getText().trim() != null && !dayInWeb.getText().trim().equals("")) {
                             WebElement dayEmelement = driver.findElement(By.xpath( config.get("regularizationDatePickerRow")  + j + "]/td[" + k + "]/a"));
                             String dayInTheCalendar = dayEmelement.getText().trim();
-                            if (dayEmelement.getText().trim().equals(Integer.toString(regularizeDay))) {
+                            if (dayInTheCalendar.equals(Integer.toString(regularizeDay))) {
                                 dayEmelement.click();
                                 isValueFound = true;
                             }
@@ -209,7 +211,7 @@ class RegularizationService {
                 WebElement reason = driver.findElement(By.xpath("//*[@id=\"gts-employee-apply-attendanceRegularization\"]/table/tbody/tr[" + (i + 1) + "]/td[5]"));
                 reason.findElement(By.id("reason")).sendKeys(reasons.get(reasonIndex));
             }
-            driver.findElement(By.xpath(config.get("submitButton"))).click();
+           driver.findElement(By.xpath(config.get("submitButton"))).click();
         }
     }
 
